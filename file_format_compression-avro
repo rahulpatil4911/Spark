@@ -1,0 +1,13 @@
+ordersCSV = spark.read.csv('/public/retail_db/orders'). \
+  toDF('order_id', 'order_date', 'order_customer_id', 'order_status')
+
+from pyspark.sql.types import IntegerType, FloatType
+orders = ordersCSV. \
+  withColumn('order_id', ordersCSV.order_id.cast(IntegerType())). \
+  withColumn('order_customer_id', ordersCSV.order_customer_id.cast(IntegerType()))
+  
+spark.conf.set('spark.sql.avro.compression.codec', 'snappy')
+
+orders.write. \
+  format('com.databricks.spark.avro'). \
+  save('/user/training/bootcampdemo/pyspark/orders_avro_compressed')

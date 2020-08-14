@@ -1,0 +1,37 @@
+orderItemsCSV = spark.read. \
+  csv('/public/retail_db/order_items'). \
+  toDF('order_item_id', 'order_item_order_id', 'order_item_product_id', 
+       'order_item_quantity', 'order_item_subtotal', 'order_item_product_price')
+
+from pyspark.sql.types import IntegerType, FloatType
+
+orderItems = orderItemsCSV.\
+    withColumn('order_item_id', orderItemsCSV.order_item_id.cast(IntegerType())). \
+    withColumn('order_item_order_id', orderItemsCSV.order_item_order_id.cast(IntegerType())). \
+    withColumn('order_item_product_id', orderItemsCSV.order_item_product_id.cast(IntegerType())). \
+    withColumn('order_item_quantity', orderItemsCSV.order_item_quantity.cast(IntegerType())). \
+    withColumn('order_item_subtotal', orderItemsCSV.order_item_subtotal.cast(FloatType())). \
+    withColumn('order_item_product_price', orderItemsCSV.order_item_product_price.cast(FloatType()))
+
+orderItems.createTempView('order_items')
+
+spark.sql('''select oi.order_item_id, oi.order_item_order_id, oi.order_item_subtotal,
+             round(sum(oi.order_item_subtotal) over (partition by oi.order_item_order_id), 2) order_revenue
+             from order_items oi
+          ''').show()
+
+spark.sql('''select oi.order_item_id, oi.order_item_order_id, oi.order_item_subtotal, 
+             rank() over 
+                (partition by oi.order_item_order_id 
+                 order by oi.order_item_subtotal desc
+                ) rnk
+             from order_items oi
+          ''').show()
+
+spark.sql('''select oi.order_item_id, oi.order_item_order_id, oi.order_item_subtotal,
+             lead(oi.order_item_subtotal) 
+                  over (partition by oi.order_item_order_id 
+                  order by oi.order_item_subtotal desc
+                 ) next_order_item_subtotal
+             from order_items oi
+          ''').show()

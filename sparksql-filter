@@ -1,0 +1,18 @@
+# Get orders which are either COMPLETE or CLOSED
+
+spark.sql('select * from orders where order_status = "COMPLETE" or order_status = "CLOSED"').show()
+spark.sql('select * from orders where order_status in ("COMPLETE", "CLOSED")').show()
+
+# Get orders which are either COMPLETE or CLOSED and placed in month of 2013 August
+
+spark.sql('select * from orders where order_status in ("COMPLETE", "CLOSED") and order_date like "2013-08%"').show()
+
+# Get order items where order_item_subtotal is not equal to product of order_item_quantity and order_item_product_price
+
+spark.sql('''select * from order_items where 
+             order_item_subtotal != round(order_item_quantity * order_item_product_price, 2)''').show()
+
+# Get all the orders which are placed on first of every month
+
+spark.sql('''select * from orders 
+             where date_format(order_date, "dd") = "01"''').show()

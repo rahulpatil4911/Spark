@@ -1,0 +1,23 @@
+ordersCSV = spark.read.csv('/public/retail_db/orders'). \
+  toDF('order_id', 'order_date', 'order_customer_id', 'order_status')
+
+from pyspark.sql.types import IntegerType, FloatType
+orders = ordersCSV. \
+  withColumn('order_id', ordersCSV.order_id.cast(IntegerType())). \
+  withColumn('order_customer_id', ordersCSV.order_customer_id.cast(IntegerType()))
+
+orders.write. \
+  format('parquet'). \
+  save('/user/training/bootcampdemo/pyspark/orders_parquet')
+
+orders.write.parquet('/user/training/bootcampdemo/pyspark/orders_parquet')
+
+orders_read = spark.read. \
+  format('parquet'). \
+  load('/user/training/bootcampdemo/pyspark/orders_parquet')
+
+orders_read = spark.read. \
+  parquet('/user/training/bootcampdemo/pyspark/orders_parquet')
+
+orders_read.show()
+orders_read.printSchema()

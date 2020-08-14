@@ -1,0 +1,19 @@
+# Get all the order items corresponding to COMPLETE or CLOSED orders
+
+spark.sql('select * from orders o join order_items oi '
+          'on o.order_id = oi.order_item_order_id '
+          'where o.order_status in ("COMPLETE", "CLOSED")'). \
+  show()
+
+# Get all the orders where there are no corresponding order_items
+
+spark.sql('select * from orders o left outer join order_items oi '
+          'on o.order_id = oi.order_item_order_id '
+          'where oi.order_item_order_id is null'). \
+  show()
+# Check if there are any order_items where there is no corresponding order in orders data set
+
+spark.sql('select * from orders o right outer join order_items oi '
+          'on o.order_id = oi.order_item_order_id '
+          'where o.order_id is null'). \
+  show()

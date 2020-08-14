@@ -1,0 +1,15 @@
+ordersCSV = spark.read.csv('/public/retail_db/orders'). \
+  toDF('order_id', 'order_date', 'order_customer_id', 'order_status')
+
+from pyspark.sql.types import IntegerType, FloatType
+orders = ordersCSV. \
+  withColumn('order_id', ordersCSV.order_id.cast(IntegerType())). \
+  withColumn('order_customer_id', ordersCSV.order_customer_id.cast(IntegerType()))
+  
+spark.conf.set('spark.sql.parquet.compression.codec', 'gzip')
+
+orders.write. \
+  format('parquet'). \
+  save('/user/training/bootcampdemo/pyspark/orders_parquet_compressed')
+
+orders.write.parquet('/user/training/bootcampdemo/pyspark/orders_parquet', mode='overwrite')

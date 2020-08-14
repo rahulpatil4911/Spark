@@ -1,0 +1,23 @@
+# Get top n products per day
+
+from pyspark.sql.functions import sum, round
+dailyProductRevenue = orders. \
+    where('order_status in ("COMPLETE", "CLOSED")'). \
+    join(orderItems, orders.order_id == orderItems.order_item_order_id). \
+    groupBy('order_date', 'order_item_product_id'). \
+    agg(round(sum(orderItems.order_item_subtotal), 2).alias('revenue'))
+
+
+from pyspark.sql.window import Window
+spec = Window. \
+    partitionBy('order_date'). \
+    orderBy(dailyProductRevenue.revenue.desc())
+
+from pyspark.sql.functions import dense_rank
+dailyProductRevenueRanked = dailyProductRevenue. \
+    withColumn('rnk', dense_rank().over(spec))
+
+topNDailyProducts = dailyProductRevenueRanked. \
+    where(dailyProductRevenueRanked.rnk <= topN). \
+    drop('rnk'). \
+    orderBy(dailyProductRevenue.order_date, dailyProductRevenue.revenue.desc())

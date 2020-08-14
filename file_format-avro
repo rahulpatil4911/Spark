@@ -1,0 +1,21 @@
+# Launch pyspark with avro dependencies
+# pyspark --master yarn --conf spark.ui.port=12901 --packages com.databricks:spark-avro_2.11:4.0.0
+
+ordersCSV = spark.read.csv('/public/retail_db/orders'). \
+  toDF('order_id', 'order_date', 'order_customer_id', 'order_status')
+
+from pyspark.sql.types import IntegerType, FloatType
+orders = ordersCSV. \
+  withColumn('order_id', ordersCSV.order_id.cast(IntegerType())). \
+  withColumn('order_customer_id', ordersCSV.order_customer_id.cast(IntegerType()))
+
+orders.write. \
+  format('com.databricks.spark.avro'). \
+  save('/user/training/bootcampdemo/pyspark/orders_avro')
+
+orders_read = spark.read. \
+  format('com.databricks.spark.avro'). \
+  load('/user/training/bootcampdemo/pyspark/orders_avro')
+
+orders_read.show()
+orders_read.printSchema()
